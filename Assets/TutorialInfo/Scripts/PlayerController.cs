@@ -26,13 +26,9 @@ public class PlayerController : MonoBehaviour
         if (Input.GetKeyDown(KeyCode.D) || Input.GetKeyDown(KeyCode.RightArrow))
             currentLane = Mathf.Min(2, currentLane + 1);
 
-        Vector3 targetPos = new Vector3(lanePositions[currentLane], transform.position.y, 0);
-        transform.position = Vector3.MoveTowards(transform.position, targetPos, laneChangeSpeed * Time.deltaTime);
-
         if (Input.GetKeyDown(KeyCode.Space))
         {
             jumpRequested = true;
-            Debug.Log("Zıplama isteği alındı!"); 
         }
 
         CheckIfGrounded();
@@ -40,6 +36,18 @@ public class PlayerController : MonoBehaviour
 
     void FixedUpdate()
     {
+        Vector3 targetPos = new Vector3(
+            lanePositions[currentLane],
+            rb.position.y,
+            0
+        );
+
+        rb.MovePosition(Vector3.MoveTowards(
+            rb.position,
+            targetPos,
+            laneChangeSpeed * Time.fixedDeltaTime
+        ));
+
         if (jumpRequested)
         {
             if (isGrounded)
@@ -47,7 +55,6 @@ public class PlayerController : MonoBehaviour
                 rb.velocity = new Vector3(rb.velocity.x, 0, rb.velocity.z);
                 rb.AddForce(Vector3.up * jumpForce, ForceMode.Impulse);
                 isGrounded = false;
-                Debug.Log("Zıpladım! Güç: " + jumpForce);
             }
             jumpRequested = false;
         }
@@ -56,19 +63,17 @@ public class PlayerController : MonoBehaviour
     void CheckIfGrounded()
     {
         RaycastHit hit;
+
         if (Physics.Raycast(transform.position, Vector3.down, out hit, groundCheckDistance + 0.3f))
         {
             if (hit.collider.CompareTag("Ground"))
             {
-                if (!isGrounded)
-                {
-                    isGrounded = true;
-                    Debug.Log("Yere değdi!");
-                }
+                isGrounded = true;
                 return;
             }
         }
 
+        isGrounded = false;
     }
 
     void OnCollisionEnter(Collision collision)
@@ -76,7 +81,6 @@ public class PlayerController : MonoBehaviour
         if (collision.gameObject.CompareTag("Ground"))
         {
             isGrounded = true;
-            Debug.Log("OnCollisionEnter: Yerdeyim!");
         }
     }
 
@@ -85,50 +89,36 @@ public class PlayerController : MonoBehaviour
         if (collision.gameObject.CompareTag("Ground"))
         {
             isGrounded = false;
-            Debug.Log("OnCollisionExit: Havadayım!");
         }
     }
 
     void OnTriggerEnter(Collider other)
     {
+        if (other.CompareTag("Coin"))
+        {
+            ScoreManager.Instance.AddCoin();
+            Destroy(other.gameObject);
+            return;
+        }
+
         if (other.CompareTag("Obstacle"))
         {
-            float obstacleY = other.transform.position.y;
-            bool isSameLane = Mathf.Abs(transform.position.x - other.transform.position.x) < 0.8f;
+            Obstacle obstacle = other.GetComponent<Obstacle>();
 
-            if (obstacleY > 1f) 
+            if (obstacle != null && obstacle.obstacleType == ObstacleType.Air)
             {
-                if (!isGrounded && isSameLane) 
+                if (isGrounded)
                 {
-                    Debug.Log(" Havada engele kafa attın!");
-                    GameManager.Instance.GameOver();
-                }
-                else if (!isGrounded && !isSameLane)
-                {
-                    Debug.Log(" Yan şeritte havada engelin yanından geçtin!");
-                }
-                else if (isGrounded && isSameLane) 
-                {
-                    Debug.Log(" Havadaki engelin altından geçtin!");
-                    Destroy(other.gameObject);
-                }
-                else 
-                {
-                    Debug.Log(" Yan şeritteki havada engele çarptın!");
                     GameManager.Instance.GameOver();
                 }
             }
-            else 
+            else
             {
-                if (isSameLane)
+                if (!isGrounded)
                 {
-                    Debug.Log(" Yerdeki engele çarptın!");
-                    GameManager.Instance.GameOver();
+                    return;
                 }
-                else
-                {
-                    Debug.Log(" Yan şeritteki engelin yanından geçtin!");
-                }
+                GameManager.Instance.GameOver();
             }
         }
     }
