@@ -47,7 +47,7 @@ public class ObstacleSpawner : MonoBehaviour
     {
         if (obstaclePrefabs.Length == 0) return;
 
-        int obstacleCount = Random.Range(1, 3);
+        int obstacleCount = Random.Range(2, 4); 
         List<int> usedLanes = new List<int>();
 
         for (int i = 0; i < obstacleCount; i++)
@@ -63,9 +63,7 @@ public class ObstacleSpawner : MonoBehaviour
             int randomObstacle = Random.Range(0, obstaclePrefabs.Length);
 
             GameObject prefab = obstaclePrefabs[randomObstacle];
-            float prefabY = prefab.transform.position.y;
-
-            Vector3 pos = new Vector3(lanePositions[randomLane], prefabY, 28f);
+            Vector3 pos = new Vector3(lanePositions[randomLane], prefab.transform.position.y, 28f);
             GameObject newObstacle = Instantiate(prefab, pos, Quaternion.identity);
 
             obstacles.Add(newObstacle);
