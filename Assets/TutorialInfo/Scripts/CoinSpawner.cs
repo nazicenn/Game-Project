@@ -4,22 +4,21 @@ using System.Collections.Generic;
 public class CoinSpawner : MonoBehaviour
 {
     public GameObject coinPrefab;
+    public float spawnInterval = 3f;
 
     private float[] lanePositions = { -2.5f, 0f, 2.5f };
     private List<GameObject> coins = new List<GameObject>();
-    private float nextSpawnTime;
-
-    void Start()
-    {
-        nextSpawnTime = Time.time + Random.Range(1f, 2f);
-    }
+    private float timer;
 
     void Update()
     {
-        if (Time.time >= nextSpawnTime)
+        timer += Time.deltaTime;
+
+        if (timer >= spawnInterval)
         {
-            SpawnCoins();
-            nextSpawnTime = Time.time + Random.Range(3f, 5f);
+            SpawnCoinLine();
+            timer = 0;
+            spawnInterval = Random.Range(2f, 4f);
         }
 
         for (int i = coins.Count - 1; i >= 0; i--)
@@ -28,7 +27,7 @@ public class CoinSpawner : MonoBehaviour
             {
                 coins[i].transform.Translate(Vector3.back * GroundSpawner.moveSpeed * Time.deltaTime);
 
-                if (coins[i].transform.position.z < -10f)
+                if (coins[i].transform.position.z < -15f)
                 {
                     Destroy(coins[i]);
                     coins.RemoveAt(i);
@@ -41,66 +40,25 @@ public class CoinSpawner : MonoBehaviour
         }
     }
 
-    void SpawnCoins()
+    void SpawnCoinLine()
     {
         if (coinPrefab == null) return;
 
-        int totalCoinCount = Random.Range(3, 9);
-        List<int> availableLanes = new List<int> { 0, 1, 2 };
-        int laneCount = Random.Range(1, 3);
-        List<int> usedLanes = new List<int>();
+        int lane = Random.Range(0, 3);
 
-        for (int i = 0; i < laneCount; i++)
+        int coinCount = Random.Range(4, 10);
+
+        float startZ = 28f;
+        float spacing = 2f;
+
+        for (int i = 0; i < coinCount; i++)
         {
-            int randomIndex = Random.Range(0, availableLanes.Count);
-            usedLanes.Add(availableLanes[randomIndex]);
-            availableLanes.RemoveAt(randomIndex);
-        }
+            float zPos = startZ + (i * spacing);
+            Vector3 pos = new Vector3(lanePositions[lane], 0.5f, zPos);
 
-        int remainingCoins = totalCoinCount;
-
-        for (int l = 0; l < usedLanes.Count; l++)
-        {
-            int lane = usedLanes[l];
-            int coinsInThisLane;
-
-            if (l == usedLanes.Count - 1)
-            {
-                coinsInThisLane = remainingCoins;
-            }
-            else
-            {
-                coinsInThisLane = Random.Range(1, remainingCoins - (usedLanes.Count - l - 1));
-            }
-
-            remainingCoins -= coinsInThisLane;
-            float startZ = 28f;
-            float spacing = 2.2f;
-
-            for (int i = 0; i < coinsInThisLane; i++)
-            {
-                float zPos = startZ + (i * spacing);
-                Vector3 pos = new Vector3(lanePositions[lane], 0.7f, zPos);
-
-                Collider[] hitColliders = Physics.OverlapSphere(pos, 0.8f);
-                bool isSafe = true;
-
-                foreach (Collider col in hitColliders)
-                {
-                    if (col.CompareTag("Obstacle"))
-                    {
-                        isSafe = false;
-                        break;
-                    }
-                }
-
-                if (isSafe)
-                {
-                    GameObject newCoin = Instantiate(coinPrefab, pos, Quaternion.identity);
-                    newCoin.tag = "Coin";
-                    coins.Add(newCoin);
-                }
-            }
+            GameObject newCoin = Instantiate(coinPrefab, pos, Quaternion.identity);
+            newCoin.tag = "Coin";
+            coins.Add(newCoin);
         }
     }
 }
