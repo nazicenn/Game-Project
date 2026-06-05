@@ -504,6 +504,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   target: {fileID: 1202161710}
   offset: {x: 0, y: 5, z: -10}
+  smoothSpeed: 8
+  baseFOV: 60
 --- !u!1 &410087039
 GameObject:
   m_ObjectHideFlags: 0
@@ -1864,8 +1866,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   coinPrefab: {fileID: 1993089277005382222, guid: ad1115372f034094ba3a8e7ed128f1d2,
     type: 3}
-  spawnInterval: 3
-  moveSpeed: 8
 --- !u!4 &2040903456
 Transform:
   m_ObjectHideFlags: 0
