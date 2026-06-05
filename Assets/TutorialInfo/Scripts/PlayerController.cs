@@ -107,18 +107,14 @@ public class PlayerController : MonoBehaviour
 
             if (obstacle != null && obstacle.obstacleType == ObstacleType.Air)
             {
+                GameManager.Instance.GameOver();
+            }
+            else 
+            {
                 if (isGrounded)
                 {
                     GameManager.Instance.GameOver();
                 }
-            }
-            else
-            {
-                if (!isGrounded)
-                {
-                    return;
-                }
-                GameManager.Instance.GameOver();
             }
         }
     }
